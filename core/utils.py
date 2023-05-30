@@ -29,26 +29,26 @@ def detect_fps(input_path):
 
 
 def set_fps(input_path, output_path, fps):
-    input_path, output_path = path(input_path), path(output_path)
-    os.system(f'ffmpeg -i "{input_path}" -filter:v fps=fps={fps} "{output_path}"')
+    input_path, output_path = Path(input_path), Path(output_path)
+    os.system(f'ffmpeg -hwaccel cuda -i "{input_path}" -vf "fps={fps}" -c:v h264_nvenc "{output_path}"')
 
 
 def create_video(video_name, fps, output_dir):
-    output_dir = path(output_dir)
-    os.system(f'ffmpeg -framerate {fps} -i "{output_dir}{sep}%04d.png" -c:v libx264 -pix_fmt yuv420p -y "{output_dir}{sep}output.mp4"')
+    output_dir = Path(output_dir)
+    os.system(f'ffmpeg -hwaccel cuda -framerate {fps} -i "{output_dir}{sep}%04d.png" -c:v h264_nvenc -pix_fmt yuv420p -y "{output_dir}{sep}output.mp4"')
 
 
 def extract_frames(input_path, output_dir):
-    input_path, output_dir = path(input_path), path(output_dir)
-    os.system(f'ffmpeg -i "{input_path}" "{output_dir}{sep}%04d.png"')
+    input_path, output_dir = Path(input_path), Path(output_dir)
+    os.system(f'ffmpeg -hwaccel cuda -i "{input_path}" "{output_dir}{sep}%04d.png"')
 
 
 def add_audio(output_dir, target_path, keep_frames, output_file):
     video = target_path.split("/")[-1]
     video_name = video.split(".")[0]
     save_to = output_file if output_file else output_dir + f"/swapped-" + video_name + ".mp4"
-    save_to_ff, output_dir_ff = path(save_to), path(output_dir)
-    os.system(f'ffmpeg -i "{output_dir_ff}{sep}output.mp4" -i "{output_dir_ff}{sep}{video}" -c:v copy -map 0:v:0 -map 1:a:0 -y "{save_to_ff}"')
+    save_to_ff, output_dir_ff = Path(save_to), Path(output_dir)
+    os.system(f'ffmpeg -hwaccel cuda -i "{output_dir_ff}{sep}output.mp4" -i "{output_dir_ff}{sep}{video}" -c:v h264_nvenc -c:a copy -map 0:v:0 -map 1:a:0 -y "{save_to_ff}"')
     if not os.path.isfile(save_to):
         shutil.move(output_dir + f"/output.mp4", save_to)
     if not keep_frames:
