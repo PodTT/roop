@@ -76,8 +76,7 @@ def save_file():
 
 
 def status(string):
-    status_label["text"] = string
-    window.update()
+    print("Status")
 
 
 def start():
